@@ -1,65 +1,53 @@
 package stepDefinations;
 
-import java.util.ArrayList;
-import java.util.List;
+import static io.restassured.RestAssured.given;
+import static org.junit.Assert.assertEquals;
 
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import io.restassured.RestAssured;
-import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.builder.ResponseSpecBuilder;
 import io.restassured.http.ContentType;
+import io.restassured.path.json.JsonPath;
+import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
-import pojo.AddPlace;
-import pojo.Location;
+import io.restassured.specification.ResponseSpecification;
+import resources.TestDataBuild;
+import resources.Utils;
 
-public class stepDefination {
+public class stepDefination extends Utils {
+
+	RequestSpecification res;
+	ResponseSpecification resspec;
+	Response response;
+	TestDataBuild data= new TestDataBuild();
 
 	@Given("Add Place Payload")
 	public void add_place_payload() {
 		// Write code here that turns the phrase above into concrete actions
-		RestAssured.baseURI="https://rahulshettyacademy.com";
 		
-		AddPlace  p= new AddPlace();
-		p.setAccuracy(50);
-		p.setAddress("29, side layout, cohen 90");
-		p.setLanguage("French-IN");
-		p.setPhone_number("(+91) 6394127923");
-		p.setWebsite("https://rahulshettyacademy.com");
-		p.setName("Frontline House");
-		p.setLocation(1);
-		
-		List<String> mylist= new  ArrayList<String>();
-		mylist.add("shoe Park");
-		mylist.add("shop");
-		
-		p.setTypes(mylist);
-		
-		Location l= new Location();
-		l.setLat(-38.383494);
-		l.setLng(33.427362);
-		
-		
-		RequestSpecification req=new RequestSpecBuilder().setBaseUri("https://rahulshettyacademy.com").addQueryParam("Key", "qaclick123")
-				.setContentType(ContentType.JSON).build();
+		resspec = new ResponseSpecBuilder().expectStatusCode(200).expectContentType(ContentType.JSON).build();
+		res = given().spec(requestSpecification()).body(data.addplacePayload());
 	}
 
 	@When("user calls {string} with the Post http request")
 	public void user_calls_with_the_post_http_request(String string) {
 		// Write code here that turns the phrase above into concrete actions
-		throw new io.cucumber.java.PendingException();
+		response = res.when().post("map/api/place/add/json").then().spec(resspec).extract().response();
 	}
 
 	@Then("the API call got  success with the status code {int}")
 	public void the_api_call_got_success_with_the_status_code(Integer int1) {
 		// Write code here that turns the phrase above into concrete actions
-		throw new io.cucumber.java.PendingException();
+		assertEquals(response.statusCode(), 201);
 	}
 
 	@Then("{string} in response body is {string}")
-	public void in_response_body_is(String string, String string2) {
+	public void in_response_body_is(String KeyValue, String ExpectedValue) {
 		// Write code here that turns the phrase above into concrete actions
-		throw new io.cucumber.java.PendingException();
+		String response1 = response.asString();
+		JsonPath js = new JsonPath(response1);
+		assertEquals(js.get(KeyValue).toString(), ExpectedValue);
 
 	}
 }
